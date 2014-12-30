@@ -14,8 +14,8 @@ class svn_exception(Exception):
 class svn_interface_tools:
     ''' Gives tools and methods to communicate with the svn repository'''
     log_msg = None
-    username = "hafizul.azeez@oracle.com"
-    password = "5rRN8Eabc1"
+    username = ""
+    password = ""
 
  # INIT
     def __init__(self, path):
