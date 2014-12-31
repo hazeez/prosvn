@@ -81,9 +81,10 @@ class svn_interface_tools:
                 print x["revision"].number, " ", x["author"], " ", x["message"]
                 no_of_revisions += 1
             print no_of_revisions
+            # TODO GET CHANGE PATH INFORMATION
         except Exception, e:
             raise svn_exception("Cannot retrieve log information for the path")
-        return
+        return logfile
 
 # GET HEAD REVISION - CURRENT TOP MOST REVISION
     def getHeadRevision(self,path):
@@ -96,7 +97,15 @@ class svn_interface_tools:
 
 # GET YOUNGER REVISION OF A PATH
     def getYoungestRevision(self, path):
-        print path
+        revision_numbers = []
+        try:
+            pathlog = self.client.log(path)
+            for x in logfile:
+                revision_numbers.append(x["revision"].number)
+            print revision_numbers[-1]
+        except Exception, e:
+            raise svn_exception("Cannot find the youngest revision of the path")
+
 
 # GET LAST REVISION OF A path
 

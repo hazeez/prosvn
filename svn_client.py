@@ -10,3 +10,6 @@ svni_tools = svni.svn_interface_tools(svn_path)
 svni_tools.getItems(svn_path, True)
 # svni_tools.getHeadRevision(svn_path)
 
+# Get youngest revision
+svni_tools.getYoungestRevision(svn_path)
+
