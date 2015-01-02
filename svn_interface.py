@@ -24,8 +24,6 @@ class svn_interface_tools:
             self.path = path
         except pysvn.ClientError, e:
             raise svn_exception('Cannot initialize SVN client')
-        
-# TODO GET SVN PATH
 
 # GET ITEMS
     def getItems(self, path, recurse=False):
@@ -103,8 +101,6 @@ class svn_interface_tools:
         except Exception, e:
             raise svn_exception("Cannot find the youngest revision of the path")
         return gyr
-# GET LAST REVISION OF A path
-
 
 # GENERATE PATHS - DOCS PATH, SOFT PATH, USER MANUALS PATH
 
@@ -144,14 +140,154 @@ class svn_interface_tools:
 
 # GENERATE TAG PATH FROM BRANCHES PATH
     def generateTagPath(self, path):
-        tag_path = ""
-        branch_path = path
-        main_tag_path = branch_path.split("/")[0:-2]
-        for x in main_tag_path:
-            tag_path += x + "/"
-        tag_path += "tags/"
+        try:
+            tag_path = ""
+            branch_path = path
+            main_tag_path = branch_path.split("/")[0:-2]
+            for x in main_tag_path:
+                tag_path += x + "/"
+            tag_path += "tags/"
+        except Exception, e:
+            raise svn_exception("Cannot generate tag path")
         return tag_path
 
+# GET RELEASE NAME
     def getReleaseName(self, path):
-        release_name = path.split("/")[-1]
+        try:
+            release_name = path.split("/")[-1]
+        except Exception, e:
+            raise svn_exception("Cannot generate release name")
         return release_name 
+
+# FROM TAG LIST GENERATE DSUM PATH FOR TAGS
+    def tagDSUMPaths(self, path):
+        try:
+            tag_fullpath = []
+            tag_list = self.generateTagList(path)
+            for x in tag_list:
+                tag_fullpath.append(self.generateDSUMPath(x))
+        except Exception, e:
+            raise svn_exception("Cannot generate tag Docs, Soft, User Manuals path")
+        return tag_fullpath
+
+# FROM TAG FULL PATH GET THE TOP REVISION
+    def getTagTopRevisionList(self, path):
+        try:
+            top_rev_list = []
+            len_tagfullpathlist = 0
+            tag_fullpathlist = self.tagDSUMPaths(path)
+            len_tagfullpathlist = len(tag_fullpathlist)
+            for x in tag_fullpathlist:
+                for y in x:
+                    top_rev_list.append(y + "/" + str(self.getYoungestRevision(y)))
+        except Exception, e:
+            raise svn_exception("Cannot generate Tag top revision list")
+        return top_rev_list
+
+# FROM BRANCH GET THE BASE REVISION OF EACH BRACNCH DIRECTORIES
+    def getBranchYoungestRevisionList(self, path):
+        try:
+            branch_rev_list=[]
+            branch_dir_list = self.generateDSUMPath(path)
+            for x in branch_dir_list:
+                branch_rev_list.append(x + "/" + str(self.getYoungestRevision(x)))
+        except Exception, e:
+            raise svn_exception("Cannot get branch's revision list")
+        return branch_rev_list
+   
+# FROM BRANCH REVISON LIST ASSIGN GLOBAL BASE REVISION 
+    def branchGlobalBaseRevision(self, path):
+        try:
+            docs_base_revision = soft_base_revision = um_base_revision = 0
+            get_branch_rev_list = self.getBranchYoungestRevisionList(path)
+            for x in get_branch_rev_list:
+                if x.split("/")[-2].lower() == "docs":
+                    docs_base_revision = x.split("/")[-1]
+                if x.split("/")[-2].lower() == "soft":
+                    soft_base_revision = x.split("/")[-1]
+                if x.split("/")[-2].lower() == "usermanuals":
+                    um_base_revision = x.split("/")[-1]
+        except Exception, e:
+            raise svn_exception("Cannot get global base revision number")
+        return docs_base_revision, soft_base_revision, um_base_revision
+
+# GET closure REVISION AND END REVISION FROM BRANCH GLOBAL REVISION LIST AND TAG TOP REVISION LIST
+    def getPathStartRevEndRev(self, path):
+        try:
+            itr1_start_list = []
+            start_ITR1_base_version = start_ITR2_base_version = closure_ITR2_base_version = closure_IUT_base_version = 0
+
+            label_name_closureIUT = "closure_of_iut"
+            label_name_startITR1 = "start_of_itr1"
+            label_name_startITR2 = "start_of_itr2"
+            label_name_closureITR2 = "closure_of_itr2"
+                   
+            tagTopRevList = self.getTagTopRevisionList(path)
+            for x in tagTopRevList:
+                if label_name_startITR1 in x.lower():
+                    start_ITR1_base_version = x.split("/")[-1]
+                if label_name_startITR2 in x.lower():
+                    start_ITR2_base_version = x.split("/")[-1]
+                if label_name_closureITR2 in x.lower():
+                    closure_ITR2_base_version = x.split("/")[-1]
+                if label_name_closureIUT in x.lower():
+                    closure_IUT_base_version = x.split("/")[-1]
+            return start_ITR1_base_version, start_ITR2_base_version, closure_ITR2_base_version, closure_IUT_base_version
+        except Exception, e:
+            raise svn_exception("Cannot get start end revison of each tag paths")
+        return
+
+# GENERATE FINAL LIST OF PATHS, START AND END REVISION AS A LIST
+    def listPathStartRevEndRev(self, path):
+        tag_path_list = self.tagDSUMPaths(path)
+        tagdir_list = []
+        start_itr1_base_version, start_itr2_base_version, closure_itr2_base_version, closure_iut_base_version = self.getPathStartRevEndRev(path)
+        docs_base_revision, soft_base_revision, um_base_revision = self.branchGlobalBaseRevision(path)
+        for x in tag_path_list:
+            for y in x:
+                if "start_of_itr1" in y.lower() and "docs" in y.lower():
+                    tagdir_list.append(y + "/" + start_itr1_base_version + "/" + docs_base_revision)
+                if "start_of_itr1" in y.lower() and "soft" in y.lower():
+                    tagdir_list.append(y + "/" + start_itr1_base_version + "/" + soft_base_revision)
+                if "start_of_itr1" in y.lower() and "usermanuals" in y.lower():
+                    tagdir_list.append(y + "/" + start_itr1_base_version + "/" + um_base_revision)
+
+                if "start_of_itr2" in y.lower() and "docs" in y.lower():
+                    tagdir_list.append(y + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
+                if "start_of_itr2" in y.lower() and "soft" in y.lower():
+                    tagdir_list.append(y + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
+                if "start_of_itr2" in y.lower() and "usermanuals" in y.lower():
+                    tagdir_list.append(y + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
+
+                if "closure_of_itr2" in y.lower() and "docs" in y.lower():
+                    tagdir_list.append(y + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
+                if "closure_of_itr2" in y.lower() and "soft" in y.lower():
+                    tagdir_list.append(y + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
+                if "closure_of_itr2" in y.lower() and "usermanuals" in y.lower():
+                    tagdir_list.append(y + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
+
+                if "closure_of_iut" in y.lower() and "docs" in y.lower():
+                    tagdir_list.append(y + "/" + closure_iut_base_version + "/" + closure_iut_base_version)
+                if "closure_of_iut" in y.lower() and "soft" in y.lower():
+                    tagdir_list.append(y + "/" + closure_iut_base_version + "/" + closure_iut_base_version)
+                if "closure_of_iut" in y.lower() and "usermanuals" in y.lower():
+                    tagdir_list.append(y + "/" + closure_iut_base_version + "/" + closure_iut_base_version)   
+        return tagdir_list
+
+# FROM tagdir_list GET THE LOG INFORMATION
+    def getLogInfo(self, path):
+        list_log_path = self.listPathStartRevEndRev(path)
+        start_revision = end_revision = 0
+        for x in list_log_path:
+            tag_path = ""
+            start_revision = x.split("/")[-1]
+            end_revision = x.split("/")[-2]
+            main_tag_path = x.split("/")[0:-2]
+            for y in main_tag_path:
+                tag_path += y + "/"
+            print tag_path
+            #generate log info
+            log_message = self.client.log(tag_path, pysvn.Revision( pysvn.opt_revision_kind.number, start_revision ), pysvn.Revision( pysvn.opt_revision_kind.number, end_revision ), False, False, 0)
+            for z in log_message:
+                print z["revision"].number, z["author"]
+            print "------------------------------"
