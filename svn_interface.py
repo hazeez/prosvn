@@ -1,7 +1,7 @@
 import pysvn
 from datetime import datetime
 
-path = 'http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0SCOBAN_R1'
+path = 'http://svnpath/'
 
 
 class svn_exception(Exception):
@@ -22,6 +22,7 @@ class svn_interface_tools:
         try:
             self.client = pysvn.Client()
             self.path = path
+            print "Connecting to Server ..."
         except pysvn.ClientError, e:
             raise svn_exception('Cannot initialize SVN client')
 
@@ -214,7 +215,6 @@ class svn_interface_tools:
 # GET closure REVISION AND END REVISION FROM BRANCH GLOBAL REVISION LIST AND TAG TOP REVISION LIST
     def getPathStartRevEndRev(self, path):
         try:
-            itr1_start_list = []
             start_ITR1_base_version = start_ITR2_base_version = closure_ITR2_base_version = closure_IUT_base_version = 0
 
             label_name_closureIUT = "closure_of_iut"
@@ -232,62 +232,142 @@ class svn_interface_tools:
                     closure_ITR2_base_version = x.split("/")[-1]
                 if label_name_closureIUT in x.lower():
                     closure_IUT_base_version = x.split("/")[-1]
-            return start_ITR1_base_version, start_ITR2_base_version, closure_ITR2_base_version, closure_IUT_base_version
         except Exception, e:
             raise svn_exception("Cannot get start end revison of each tag paths")
-        return
+        return start_ITR1_base_version, start_ITR2_base_version, closure_ITR2_base_version, closure_IUT_base_version
 
 # GENERATE FINAL LIST OF PATHS, START AND END REVISION AS A LIST
     def listPathStartRevEndRev(self, path):
-        tag_path_list = self.tagDSUMPaths(path)
-        tagdir_list = []
-        start_itr1_base_version, start_itr2_base_version, closure_itr2_base_version, closure_iut_base_version = self.getPathStartRevEndRev(path)
-        docs_base_revision, soft_base_revision, um_base_revision = self.branchGlobalBaseRevision(path)
-        for x in tag_path_list:
-            for y in x:
-                if "start_of_itr1" in y.lower() and "docs" in y.lower():
-                    tagdir_list.append(y + "/" + start_itr1_base_version + "/" + docs_base_revision)
-                if "start_of_itr1" in y.lower() and "soft" in y.lower():
-                    tagdir_list.append(y + "/" + start_itr1_base_version + "/" + soft_base_revision)
-                if "start_of_itr1" in y.lower() and "usermanuals" in y.lower():
-                    tagdir_list.append(y + "/" + start_itr1_base_version + "/" + um_base_revision)
+        try:
+            tag_path_list = self.tagDSUMPaths(path)
+            tagdir_list = []
+            start_itr1_base_version, start_itr2_base_version, closure_itr2_base_version, closure_iut_base_version = self.getPathStartRevEndRev(path)
+            docs_base_revision, soft_base_revision, um_base_revision = self.branchGlobalBaseRevision(path)
+            for x in tag_path_list:
+                for y in x:
+                    if "start_of_itr1" in y.lower() and "docs" in y.lower():
+                        tagdir_list.append(y + "/" + start_itr1_base_version + "/" + docs_base_revision)
+                    if "start_of_itr1" in y.lower() and "soft" in y.lower():
+                        tagdir_list.append(y + "/" + start_itr1_base_version + "/" + soft_base_revision)
+                    if "start_of_itr1" in y.lower() and "usermanuals" in y.lower():
+                        tagdir_list.append(y + "/" + start_itr1_base_version + "/" + um_base_revision)
 
-                if "start_of_itr2" in y.lower() and "docs" in y.lower():
-                    tagdir_list.append(y + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
-                if "start_of_itr2" in y.lower() and "soft" in y.lower():
-                    tagdir_list.append(y + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
-                if "start_of_itr2" in y.lower() and "usermanuals" in y.lower():
-                    tagdir_list.append(y + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
+                    if "start_of_itr2" in y.lower() and "docs" in y.lower():
+                        tagdir_list.append(y + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
+                    if "start_of_itr2" in y.lower() and "soft" in y.lower():
+                        tagdir_list.append(y + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
+                    if "start_of_itr2" in y.lower() and "usermanuals" in y.lower():
+                        tagdir_list.append(y + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
 
-                if "closure_of_itr2" in y.lower() and "docs" in y.lower():
-                    tagdir_list.append(y + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
-                if "closure_of_itr2" in y.lower() and "soft" in y.lower():
-                    tagdir_list.append(y + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
-                if "closure_of_itr2" in y.lower() and "usermanuals" in y.lower():
-                    tagdir_list.append(y + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
+                    if "closure_of_itr2" in y.lower() and "docs" in y.lower():
+                        tagdir_list.append(y + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
+                    if "closure_of_itr2" in y.lower() and "soft" in y.lower():
+                        tagdir_list.append(y + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
+                    if "closure_of_itr2" in y.lower() and "usermanuals" in y.lower():
+                        tagdir_list.append(y + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
 
-                if "closure_of_iut" in y.lower() and "docs" in y.lower():
-                    tagdir_list.append(y + "/" + closure_iut_base_version + "/" + closure_iut_base_version)
-                if "closure_of_iut" in y.lower() and "soft" in y.lower():
-                    tagdir_list.append(y + "/" + closure_iut_base_version + "/" + closure_iut_base_version)
-                if "closure_of_iut" in y.lower() and "usermanuals" in y.lower():
-                    tagdir_list.append(y + "/" + closure_iut_base_version + "/" + closure_iut_base_version)   
+                    if "closure_of_iut" in y.lower() and "docs" in y.lower():
+                        tagdir_list.append(y + "/" + closure_iut_base_version + "/" + docs_base_revision)
+                    if "closure_of_iut" in y.lower() and "soft" in y.lower():
+                        tagdir_list.append(y + "/" + closure_iut_base_version + "/" + soft_base_revision)
+                    if "closure_of_iut" in y.lower() and "usermanuals" in y.lower():
+                        tagdir_list.append(y + "/" + closure_iut_base_version + "/" + um_base_revision)   
+        except Exception, e:
+            raise svn_exception("Cannot generate tag directory list")
         return tagdir_list
 
 # FROM tagdir_list GET THE LOG INFORMATION
     def getLogInfo(self, path):
-        list_log_path = self.listPathStartRevEndRev(path)
-        start_revision = end_revision = 0
-        for x in list_log_path:
-            tag_path = ""
-            start_revision = x.split("/")[-1]
-            end_revision = x.split("/")[-2]
-            main_tag_path = x.split("/")[0:-2]
-            for y in main_tag_path:
-                tag_path += y + "/"
-            print tag_path
-            #generate log info
-            log_message = self.client.log(tag_path, pysvn.Revision( pysvn.opt_revision_kind.number, start_revision ), pysvn.Revision( pysvn.opt_revision_kind.number, end_revision ), False, False, 0)
-            for z in log_message:
-                print z["revision"].number, z["author"]
-            print "------------------------------"
+        try:
+            list_log_path = self.listPathStartRevEndRev(path)        
+            start_revision = end_revision = 0
+            list_len_author_name = []
+            unique_author_list = []
+            for x in list_log_path:
+                tag_path = ""
+                start_revision = x.split("/")[-1]
+                end_revision = x.split("/")[-2]
+                main_tag_path = x.split("/")[0:-2]
+                for y in main_tag_path:
+                    tag_path += y + "/"
+                print "-" * len(tag_path)
+                print tag_path
+                print "-" * len(tag_path)
+                #generate log info
+                print "| START REVISION : " , start_revision , "| %10s" %("END REVISION : ") , end_revision, " | "
+                log_message = self.client.log(tag_path, pysvn.Revision( pysvn.opt_revision_kind.number, start_revision ), pysvn.Revision( pysvn.opt_revision_kind.number, end_revision) , True, False, 0)
+                lenmax_author_name = self.findMaxLenAuthorName(log_message, list_len_author_name, unique_author_list)
+                self.reportLogMessage(log_message, lenmax_author_name)
+        except Exception, e:
+            raise svn_exception("Cannot generate and format log information")
+        return
+
+# FROM GET LOG INFO FORMAT LOG MESSAGE
+    def reportLogMessage(self, log_message, lenmax_author_name):
+        try:
+            # COUNT NO OF COMMITS
+            no_of_commits = 0
+            # GET UNIQUE AUTHOR LIST
+            lenmax_author_name += 3
+            unique_author_list = []
+            author_list = []
+            author_name = ""
+            author_name_padding = "%" + str(lenmax_author_name) +"s"
+            
+            print "-"*(lenmax_author_name+ 1 + 45)
+            print "|" + author_name_padding % ("AUTHOR NAME" + " |") + "COMMITS" + " | " + "ADD UNITS" + " | " + "MOD UNITS" + " | " + "DEL UNITS" + " | "
+            print "-"*(lenmax_author_name+ 1 + 45)
+            for x in log_message:
+                author_name = x["author"]
+                author_list.append(author_name)
+                if author_name not in unique_author_list:
+                    unique_author_list.append(author_name)
+            for y in unique_author_list:
+                # GET ADD DELETE MODIFY COMMIT INFORMATION
+                commits_added = 0
+                commits_modified = 0
+                commits_deleted = 0                
+                no_of_commits = author_list.count(y)
+                for z in log_message:
+                    author_name = z["author"]
+                    if author_name == y:
+                        for change in z.changed_paths:
+                            action = change["action"]
+                            if action == "A": # ADDED UNITS
+                                commits_added += 1
+                            if action == "M": # MODIFIED UNITS
+                                commits_modified += 1
+                            if action == "D": # DELETED UNITS
+                                commits_deleted += 1
+                print "|" + author_name_padding  %(y + " |"), "%6s" % (no_of_commits) + " |", "%9s" % (commits_added) + " |", "%9s" % (commits_modified) + " |", "%9s" % (commits_deleted) + " |"
+            print "="*(lenmax_author_name+ 1 + 45)
+            print ""
+        except Exception, e:
+            raise svn_exception("Cannot generate report")
+        return
+
+# FIND THE MAX LENGTH OF THE AUTHOR NAME - FOR FORMATTING THE REPORT TABLE
+    def findMaxLenAuthorName(self, log_message, list_len_author_name, unique_author_list):
+        try:
+            for x in log_message:
+                author_name = x["author"]
+                if author_name not in unique_author_list:
+                    unique_author_list.append(author_name)
+                    list_len_author_name.append(len(author_name))
+            lenmax_author_name = max(list_len_author_name)
+        except Exception, e:
+            raise svn_exception("Cannot compute the maximum length of the author")
+        return lenmax_author_name
+
+# WAIT FOR INPUT
+    def wait(self):
+        raw_input("Press enter / return key to exit")
+
+# THINGS TO DO 
+# START SVN_CLIENT LANGUAGE_CODE
+# ENHANCED REPORTING
+# SEND MAIL ONCE REPORT IS GENERATED
+# PROVISION FOR DETAILED REPORTING
+# COLORIZE ANAMOLIES
+# ANYTHING ELSE TO STUMBLE ONCE
+# UNIT TESTING
