@@ -272,34 +272,48 @@ class svn_interface_tools:
         if um_base_revision == 0:
             print "No user manuals directory present"
 
+        if docs_base_revision == 0 or soft_base_revision == 0 or um_base_revision == 0:
+            print "Oops! Looks like none of the Docs or Soft or User Manuals folder are created yet"
+            print "Disconnecting from the server ..."
+            exit()
+
         for x in tag_path_list:
-            if "start_of_itr1" in x.lower() and "docs" in x.lower():
-                tagdir_list.append(x + "/" + start_itr1_base_version + "/" + docs_base_revision)
-            if "start_of_itr1" in x.lower() and "soft" in x.lower():
-                tagdir_list.append(x + "/" + start_itr1_base_version + "/" + soft_base_revision)
-            if "start_of_itr1" in x.lower() and "usermanuals" in x.lower():
-                tagdir_list.append(x + "/" + start_itr1_base_version + "/" + um_base_revision)
+            print x
+            if "start_of_itr1" in x.lower():
+                if "docs" in x.lower():
+                    tagdir_list.append(x + "/" + start_itr1_base_version + "/" + docs_base_revision)
+                if "soft" in x.lower():
+                    tagdir_list.append(x + "/" + start_itr1_base_version + "/" + soft_base_revision)
+                if "usermanuals" in x.lower():
+                    tagdir_list.append(x + "/" + start_itr1_base_version + "/" + um_base_revision)
 
-            if "start_of_itr2" in x.lower() and "docs" in x.lower():
-                tagdir_list.append(x + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
-            if "start_of_itr2" in x.lower() and "soft" in x.lower():
-                tagdir_list.append(x + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
-            if "start_of_itr2" in x.lower() and "usermanuals" in x.lower():
-                tagdir_list.append(x + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
-
-            if "closure_of_itr2" in x.lower() and "docs" in x.lower():
-                tagdir_list.append(x + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
-            if "closure_of_itr2" in x.lower() and "soft" in x.lower():
-                tagdir_list.append(x + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
-            if "closure_of_itr2" in x.lower() and "usermanuals" in x.lower():
-                tagdir_list.append(x + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
-
-            if "closure_of_iut" in x.lower() and "docs" in x.lower():
-                tagdir_list.append(x + "/" + closure_iut_base_version + "/" + docs_base_revision)
-            if "closure_of_iut" in x.lower() and "soft" in x.lower():
-                tagdir_list.append(x + "/" + closure_iut_base_version + "/" + soft_base_revision)
-            if "closure_of_iut" in x.lower() and "usermanuals" in x.lower():
-                tagdir_list.append(x + "/" + closure_iut_base_version + "/" + um_base_revision)
+            if "start_of_itr2" in x.lower():
+                if "docs" in x.lower() or "soft" in x.lower() or "usermanuals" in x.lower():
+                    if start_itr1_base_version != 0:
+                        tagdir_list.append(x + "/" + start_itr2_base_version + "/" + start_itr1_base_version)
+                    else:
+                        if "docs" in x.lower():
+                            tagdir_list.append(x + "/" + start_itr2_base_version + "/" + docs_base_revision)
+                        if "soft" in x.lower():
+                            tagdir_list.append(x + "/" + start_itr2_base_version + "/" + soft_base_revision)
+                        if "usermanuals" in x.lower():
+                            tagdir_list.append(x + "/" + start_itr2_base_version + "/" + um_base_revision)
+                
+            if "closure_of_itr2" in x.lower():
+                if "docs" in x.lower() or "soft" in x.lower() or "usermanuals" in x.lower():
+                    if start_itr2_base_version != 0:
+                        tagdir_list.append(x + "/" + closure_itr2_base_version + "/" + start_itr2_base_version)
+                    else:
+                        tagdir_list.append(x + "/" + closure_itr2_base_version + "/" + start_itr1_base_version)
+                
+            if "closure_of_iut" in x.lower():
+                if "docs" in x.lower():
+                    tagdir_list.append(x + "/" + closure_iut_base_version + "/" + docs_base_revision)
+                if "soft" in x.lower():
+                    tagdir_list.append(x + "/" + closure_iut_base_version + "/" + soft_base_revision)
+                if "usermanuals" in x.lower():
+                    tagdir_list.append(x + "/" + closure_iut_base_version + "/" + um_base_revision)
+                
         #except Exception, e:
         #    raise svn_exception("Cannot generate tag directory list")
         return tagdir_list
