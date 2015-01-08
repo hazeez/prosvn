@@ -255,16 +255,21 @@ class svn_interface_tools:
         tagdir_list = []
         start_itr1_base_version, start_itr2_base_version, closure_itr2_base_version, closure_iut_base_version = self.getPathStartRevEndRev(path)
         docs_base_revision, soft_base_revision, um_base_revision = self.branchGlobalBaseRevision(path)
-        
-        if start_itr1_base_version == 0:
-            print "No start of ITR1 tagging yet"
-        if start_itr2_base_version == 0:
-            print "No start of ITR2 tagging yet"
-        if closure_itr2_base_version == 0:
-            print "No closure of ITR2 tagging yet"
-        if closure_iut_base_version == 0:
-            print "No closure of IUT tagging yet"
 
+        applicable_tags = "| " + "APPLICABLE TAGS " + " |"
+        print "-"*len(applicable_tags)
+        print applicable_tags
+        print "-"*len(applicable_tags)
+        
+        if start_itr1_base_version != 0:
+            print "Start of ITR1 tagging is present"
+        if start_itr2_base_version != 0:
+            print "Start of ITR2 tagging is present"
+        if closure_itr2_base_version != 0:
+            print "Closure of ITR2 tagging is present"
+        if closure_iut_base_version != 0:
+            print "Closure of IUT tagging is present"
+        print ""
         if docs_base_revision == 0:
             print "No docs directory present"
         if soft_base_revision == 0:
@@ -277,8 +282,15 @@ class svn_interface_tools:
             print "Disconnecting from the server ..."
             exit()
 
+        tag_path_heading = "| " + "APPLICABLE TAG PATHS:" + " |"
+        print "-"*len(tag_path_heading)
+        print tag_path_heading
+        print "-"*len(tag_path_heading)
+
+        for tags in tag_path_list:
+            print tags
+        print ""
         for x in tag_path_list:
-            print x
             if "start_of_itr1" in x.lower():
                 if "docs" in x.lower():
                     tagdir_list.append(x + "/" + start_itr1_base_version + "/" + docs_base_revision)
@@ -325,6 +337,13 @@ class svn_interface_tools:
         start_revision = end_revision = 0
         list_len_author_name = []
         unique_author_list = []
+
+        report_heading = "| " + " *** USER ACCESS REPORT AND COMMIT SUMMARY ***" + " |"
+        print "-" * len(report_heading)
+        print report_heading
+        print "-" * len(report_heading)
+        print ""
+        
         for x in list_log_path:
             tag_path = ""
             start_revision = x.split("/")[-1]
@@ -332,14 +351,15 @@ class svn_interface_tools:
             main_tag_path = x.split("/")[0:-2]
             for y in main_tag_path:
                 tag_path += y + "/"
-            print "-" * len(tag_path)
+            #print "-" * len(tag_path)
             print tag_path
-            print "-" * len(tag_path)
+            print "=" * len(tag_path)
             #generate log info
             print "| START REVISION : " , start_revision , "| %10s" %("END REVISION : ") , end_revision, " | "
             log_message = self.client.log(tag_path, pysvn.Revision( pysvn.opt_revision_kind.number, start_revision ), pysvn.Revision( pysvn.opt_revision_kind.number, end_revision) , True, False, 0)
             lenmax_author_name = self.findMaxLenAuthorName(log_message, list_len_author_name, unique_author_list)
-            self.reportLogMessage(log_message, lenmax_author_name)
+            self.reportLogMessage(log_message, lenmax_author_name) 
+            print ""
         #except Exception, e:
         #    raise svn_exception("Cannot generate and format log information")
         return
@@ -360,7 +380,7 @@ class svn_interface_tools:
             print "|" + author_name_padding % ("AUTHOR NAME" + " |") + "COMMITS" + " | " + "ADD UNITS" + " | " + "MOD UNITS" + " | " + "DEL UNITS" + " | "
             print "-"*(lenmax_author_name+ 1 + 45)
             for x in log_message:
-                author_name = x["author"]
+                author_name = x["author"].split('@')[0]
                 author_list.append(author_name)
                 if author_name not in unique_author_list:
                     unique_author_list.append(author_name)
@@ -371,7 +391,7 @@ class svn_interface_tools:
                 commits_deleted = 0                
                 no_of_commits = author_list.count(y)
                 for z in log_message:
-                    author_name = z["author"]
+                    author_name = z["author"].split('@')[0] #author name before @company.com email id
                     if author_name == y:
                         for change in z.changed_paths:
                             action = change["action"]
@@ -382,7 +402,7 @@ class svn_interface_tools:
                             if action == "D": # DELETED UNITS
                                 commits_deleted += 1
                 print "|" + author_name_padding  %(y + " |"), "%6s" % (no_of_commits) + " |", "%9s" % (commits_added) + " |", "%9s" % (commits_modified) + " |", "%9s" % (commits_deleted) + " |"
-            print "="*(lenmax_author_name+ 1 + 45)
+            print "-"*(lenmax_author_name+ 1 + 45)
             print ""
         except Exception, e:
             raise svn_exception("Cannot generate report")
@@ -393,6 +413,7 @@ class svn_interface_tools:
         try:
             for x in log_message:
                 author_name = x["author"]
+                author_name = author_name.split("@")[0]
                 if author_name not in unique_author_list:
                     unique_author_list.append(author_name)
                     list_len_author_name.append(len(author_name))
@@ -413,6 +434,4 @@ class svn_interface_tools:
 # COLORIZE ANAMOLIES
 # ANYTHING ELSE TO STUMBLE ONCE
 # UNIT TESTING
-# REWRITE listPathStartRevEndRev FUNCTION I.E. REMOVE HARD CODING
-    #GET THE DIRECTORIES FROM THE TAG PATH
-    #APPEND THE DIRECTORIES TO THE TAG PATH
+# REWRITE listPathStartRevEndRev FUNCTION I.E. REMOVE HARD CODING - addressed in a round about way
