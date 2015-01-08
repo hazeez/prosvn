@@ -1,6 +1,5 @@
 import svn_interface as svni
-import sys
-
+import time
 # TODO GET SVN PATH
 
 svn_path = 'http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0SCOBAN_R1'
@@ -8,9 +7,9 @@ svn_path = 'http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.
 #svn_path = 'http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/tags'
 
 #svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0MELOCAL_R2"
-#NOT WORKING
+
 #svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0USALAL_R1"
-#NOT WORKING
+
 #svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0EGYPT_R1"
 
 #svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0AMLAKF_R1"
@@ -18,6 +17,8 @@ svn_path = 'http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.
 svni_tools = svni.svn_interface_tools(svn_path)
 print "Path : ", svn_path
 print ""
+
+start_time = time.time()
 
 #print svni_tools.generateDSUMPath(svn_path)
 #print ""
@@ -53,7 +54,11 @@ print ""
 #for z in tag_dir_list:
 #    print z
 
-print svni_tools.getLogInfo(svn_path)
-svni_tools.wait()
+
+svni_tools.getLogInfo(svn_path)
+#print svni_tools.getLogInfo(svn_path, list_log_path2)
+time_taken = time.time() - start_time
+print "Time taken in (s):", time_taken
+#svni_tools.wait()
 
 
