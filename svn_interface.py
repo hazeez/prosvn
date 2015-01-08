@@ -1,5 +1,4 @@
 import pysvn
-from datetime import datetime
 
 path = 'http://svnpath/'
 
@@ -202,10 +201,11 @@ class svn_interface_tools:
         branch_rev_list=[]
         branch_dir_list = self.generateDSUMPath(path)
         for x in branch_dir_list:
-            branch_rev_list.append(x + "/" + str(self.getYoungestRevision(x)))
+            # branch_rev_list.append(x + "/" + str(self.getYoungestRevision(x)))
+            yield (x + "/" + str(self.getYoungestRevision(x)))
         #except Exception, e:
         #    raise svn_exception("Cannot get branch's revision list")
-        return branch_rev_list
+        #return branch_rev_list
    
 # FROM BRANCH REVISON LIST ASSIGN GLOBAL BASE REVISION 
     def branchGlobalBaseRevision(self, path):
@@ -333,12 +333,13 @@ class svn_interface_tools:
 # FROM tagdir_list GET THE LOG INFORMATION
     def getLogInfo(self, path):
         #try:
-        list_log_path = self.listPathStartRevEndRev(path)        
+        list_log_path = self.listPathStartRevEndRev(path)
+        #list_log_path = list_log_path
         start_revision = end_revision = 0
         list_len_author_name = []
         unique_author_list = []
 
-        report_heading = "| " + " *** USER ACCESS REPORT AND COMMIT SUMMARY ***" + " |"
+        report_heading = "| " + " *** USER ACCESS AND COMMIT SUMMARY REPORT ***" + " |"
         print "-" * len(report_heading)
         print report_heading
         print "-" * len(report_heading)
@@ -357,7 +358,7 @@ class svn_interface_tools:
             #generate log info
             print "| START REVISION : " , start_revision , "| %10s" %("END REVISION : ") , end_revision, " | "
             log_message = self.client.log(tag_path, pysvn.Revision( pysvn.opt_revision_kind.number, start_revision ), pysvn.Revision( pysvn.opt_revision_kind.number, end_revision) , True, False, 0)
-            lenmax_author_name = self.findMaxLenAuthorName(log_message, list_len_author_name, unique_author_list)
+            lenmax_author_name = self.findMaxLenAuthorName(log_message)
             self.reportLogMessage(log_message, lenmax_author_name) 
             print ""
         #except Exception, e:
@@ -408,16 +409,11 @@ class svn_interface_tools:
             raise svn_exception("Cannot generate report")
         return
 
-# FIND THE MAX LENGTH OF THE AUTHOR NAME - FOR FORMATTING THE REPORT TABLE
-    def findMaxLenAuthorName(self, log_message, list_len_author_name, unique_author_list):
+# REWRITE FIND MAX LEN AUTHOR NAME FUNTION TO OPTIMIZE THE CODE WITH GENERATORS
+
+    def findMaxLenAuthorName(self, log_message):
         try:
-            for x in log_message:
-                author_name = x["author"]
-                author_name = author_name.split("@")[0]
-                if author_name not in unique_author_list:
-                    unique_author_list.append(author_name)
-                    list_len_author_name.append(len(author_name))
-            lenmax_author_name = max(list_len_author_name)
+            lenmax_author_name = max(len(x["author"].split("@")[0]) for x in log_message)
         except Exception, e:
             raise svn_exception("Cannot compute the maximum length of the author")
         return lenmax_author_name
