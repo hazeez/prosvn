@@ -2,13 +2,24 @@ import pysvn
 
 path = 'http://svnpath/'
 
-
+#  FOR RAISING ERRORS
 class svn_exception(Exception):
     def __init__(self, Exception):
         self.value = Exception
 
     def __str__(self):
         return repr(self.value)
+
+# CLASS FOR PAINTING THE COLORS OF TEXT IN TERMINAL
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 class svn_interface_tools:
     ''' Gives tools and methods to communicate with the svn repository'''
@@ -278,7 +289,7 @@ class svn_interface_tools:
             print "No user manuals directory present"
 
         if docs_base_revision == 0 or soft_base_revision == 0 or um_base_revision == 0:
-            print "Oops! Looks like none of the Docs or Soft or User Manuals folder are created yet"
+            print "Oops! Looks like none of the Docs or Soft or User Manuals folder are created yet" 
             print "Disconnecting from the server ..."
             exit()
 
@@ -338,10 +349,9 @@ class svn_interface_tools:
         start_revision = end_revision = 0
         list_len_author_name = []
         unique_author_list = []
-
         report_heading = "| " + " *** USER ACCESS AND COMMIT SUMMARY REPORT ***" + " |"
         print "-" * len(report_heading)
-        print report_heading
+        print bcolors.OKBLUE + bcolors.BOLD + report_heading + bcolors.ENDC
         print "-" * len(report_heading)
         print ""
         
@@ -359,54 +369,63 @@ class svn_interface_tools:
             print "| START REVISION : " , start_revision , "| %10s" %("END REVISION : ") , end_revision, " | "
             log_message = self.client.log(tag_path, pysvn.Revision( pysvn.opt_revision_kind.number, start_revision ), pysvn.Revision( pysvn.opt_revision_kind.number, end_revision) , True, False, 0)
             lenmax_author_name = self.findMaxLenAuthorName(log_message)
-            self.reportLogMessage(log_message, lenmax_author_name) 
+            self.reportLogMessage(log_message, lenmax_author_name, tag_path) 
             print ""
         #except Exception, e:
         #    raise svn_exception("Cannot generate and format log information")
         return
 
 # FROM GET LOG INFO FORMAT LOG MESSAGE
-    def reportLogMessage(self, log_message, lenmax_author_name):
-        try:
+    def reportLogMessage(self, log_message, lenmax_author_name, tag_path):
+        # try:
             # COUNT NO OF COMMITS
-            no_of_commits = 0
-            # GET UNIQUE AUTHOR LIST
-            lenmax_author_name += 3
-            unique_author_list = []
-            author_list = []
-            author_name = ""
-            author_name_padding = "%" + str(lenmax_author_name) +"s"
-            
-            print "-"*(lenmax_author_name+ 1 + 45)
-            print "|" + author_name_padding % ("AUTHOR NAME" + " |") + "COMMITS" + " | " + "ADD UNITS" + " | " + "MOD UNITS" + " | " + "DEL UNITS" + " | "
-            print "-"*(lenmax_author_name+ 1 + 45)
-            for x in log_message:
-                author_name = x["author"].split('@')[0]
-                author_list.append(author_name)
-                if author_name not in unique_author_list:
-                    unique_author_list.append(author_name)
-            for y in unique_author_list:
-                # GET ADD DELETE MODIFY COMMIT INFORMATION
-                commits_added = 0
-                commits_modified = 0
-                commits_deleted = 0                
-                no_of_commits = author_list.count(y)
-                for z in log_message:
-                    author_name = z["author"].split('@')[0] #author name before @company.com email id
-                    if author_name == y:
-                        for change in z.changed_paths:
-                            action = change["action"]
-                            if action == "A": # ADDED UNITS
-                                commits_added += 1
-                            if action == "M": # MODIFIED UNITS
-                                commits_modified += 1
-                            if action == "D": # DELETED UNITS
-                                commits_deleted += 1
+        no_of_commits = 0
+        # GET UNIQUE AUTHOR LIST
+        lenmax_author_name += 3
+        unique_author_list = []
+        author_list = []
+        author_name = ""
+        author_name_padding = "%" + str(lenmax_author_name) +"s"
+        
+        print "-"*(lenmax_author_name+ 1 + 45)
+        print "|" + author_name_padding % ("AUTHOR NAME" + " |") + "COMMITS" + " | " + "ADD UNITS" + " | " + "MOD UNITS" + " | " + "DEL UNITS" + " | " 
+        print "-"*(lenmax_author_name+ 1 + 45)
+        for x in log_message:
+            author_name = x["author"].split('@')[0]
+            author_list.append(author_name)
+            if author_name not in unique_author_list:
+                unique_author_list.append(author_name)
+        for y in unique_author_list:
+            # GET ADD DELETE MODIFY COMMIT INFORMATION
+            commits_added = 0
+            commits_modified = 0
+            commits_deleted = 0                
+            no_of_commits = author_list.count(y)
+            for z in log_message:
+                author_name = z["author"].split('@')[0] #author name before @company.com email id
+                if author_name == y:
+                    for change in z.changed_paths:
+                        action = change["action"]
+                        if action == "A": # ADDED UNITS
+                            commits_added += 1
+                        if action == "M": # MODIFIED UNITS
+                            commits_modified += 1
+                        if action == "D": # DELETED UNITS
+                            commits_deleted += 1
+            if "itr2" in tag_path.lower() or "itr3" in tag_path.lower():
+                if commits_added != 0:
+                    if "soft" in tag_path.split("/")[-2].lower():
+                        commits_added = str(commits_added) + '*'
+
+                        print "|" + author_name_padding  %(y + " |"), "%6s" % (no_of_commits) + " |", bcolors.FAIL + bcolors.BOLD + "%9s" % (commits_added) + bcolors.ENDC + " |", "%9s" % (commits_modified) + " |", "%9s" % (commits_deleted) + " |"
+                    else:
+                        print "|" + author_name_padding  %(y + " |"), "%6s" % (no_of_commits) + " |", "%9s" % (commits_added) + " |", "%9s" % (commits_modified) + " |", "%9s" % (commits_deleted) + " |"
+            else:
                 print "|" + author_name_padding  %(y + " |"), "%6s" % (no_of_commits) + " |", "%9s" % (commits_added) + " |", "%9s" % (commits_modified) + " |", "%9s" % (commits_deleted) + " |"
-            print "-"*(lenmax_author_name+ 1 + 45)
-            print ""
-        except Exception, e:
-            raise svn_exception("Cannot generate report")
+        print "-"*(lenmax_author_name+ 1 + 45)
+        print ""
+        # except Exception, e:
+        #     raise svn_exception("Cannot generate report")
         return
 
 # REWRITE FIND MAX LEN AUTHOR NAME FUNTION TO OPTIMIZE THE CODE WITH GENERATORS
@@ -420,7 +439,7 @@ class svn_interface_tools:
 
 # WAIT FOR INPUT
     def wait(self):
-        raw_input("Press enter / return key to exit")
+        raw_input(bcolors.OKGREEN + "Press enter / return key to exit" + bcolors.ENDC)
 
 # THINGS TO DO 
 # START SVN_CLIENT CODE

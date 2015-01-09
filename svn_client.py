@@ -15,8 +15,10 @@ svn_path = 'http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.
 #svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0AMLAKF_R1"
 
 svni_tools = svni.svn_interface_tools(svn_path)
+colors = svni.bcolors()
 # print "Path : ", svn_path
 # print ""
+
 
 # GET PATH FROM THE USER
 class svn_client:
@@ -25,13 +27,13 @@ class svn_client:
         print ""
         print "Please enter the svn branch path"
         print "(E.g.) http://ipaddress:port/svn/FCUBS_*.*.0.0.0/branches/release_name"
-        svn_path = raw_input("Enter the svn path:")
+        svn_path = raw_input(colors.OKGREEN + "Enter the svn path:" + colors.ENDC)
         return svn_path
 
     def validateSVNPath(self):
         path = self.getSVNPath()
         if path.lower() == "exit" or path.lower() == 'e':
-            print "Quitting the program"
+            print colors.FAIL + "Quitting the program" + colors.ENDC
             exit()
         if "branches" not in path.lower():
             if len(path) == 0:
@@ -58,10 +60,10 @@ class svn_client:
         print "Time taken in seconds:", time_taken
 
 svn_client = svn_client()
-#try:
-svn_client.getLogInformation()
-#except Exception:
-#print "Oops, could not generate the report. Try again"
+try:
+    svn_client.getLogInformation()
+except Exception:
+    print colors.FAIL + "Oops, could not generate the report. Try again" + colors.ENDC
 #svni_tools.wait()
 
 
