@@ -21,7 +21,7 @@ class svn_interface_tools:
         try:
             self.client = pysvn.Client()
             self.path = path
-            print "Connecting to Server ... "
+            print "Initializing SVN client ... "
         except pysvn.ClientError, e:
             raise svn_exception('Cannot initialize SVN client')
 

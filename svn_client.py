@@ -8,57 +8,60 @@ svn_path = 'http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.
 
 #svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0MELOCAL_R2"
 
-#svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0USALAL_R1"
+#svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.2.0.0USALAL_R1"
 
 #svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0EGYPT_R1"
 
 #svn_path = "http://10.184.152.13:18080/svn/FCUBS_12.0.2.0.0/branches/FCUBS_12.0.2.0.0AMLAKF_R1"
 
 svni_tools = svni.svn_interface_tools(svn_path)
-print "Path : ", svn_path
-print ""
-
-start_time = time.time()
-
-#print svni_tools.generateDSUMPath(svn_path)
-#print ""
-#print svni_tools.generateTagList(svn_path)
-#print ""
-
-# tag_list = svni_tools.generateTagList(svn_path)
-# for b in tag_list:
-#     print b
+# print "Path : ", svn_path
 # print ""
 
-# #tag_full_path = svni_tools.tagDSUMPaths(svn_path)
-# svni_tools.tagDSUMPaths(svn_path)
-# #for a in tag_full_path:
-#     #for c in a:
-#     #    print c
-# print ""
+# GET PATH FROM THE USER
+class svn_client:
 
-# top_rev_list = svni_tools.getTagTopRevisionList(svn_path)
-# for x in top_rev_list:
-#     print x
+    def getSVNPath(self):
+        print ""
+        print "Please enter the svn branch path"
+        print "(E.g.) http://ipaddress:port/svn/FCUBS_*.*.0.0.0/branches/release_name"
+        svn_path = raw_input("Enter the svn path:")
+        return svn_path
 
-# print ""
+    def validateSVNPath(self):
+        path = self.getSVNPath()
+        if path.lower() == "exit" or path.lower() == 'e':
+            print "Quitting the program"
+            exit()
+        if "branches" not in path.lower():
+            if len(path) == 0:
+                print "SVN path cannot be empty"
+                print "Try again or type e or exit to quit the program."
+            else:
+                print "Looks like the svn_path provided is incorrect."
+                print "Try again or type e or exit to quit the program."
+                print ""
+            self.validateSVNPath()
+        if path.startswith("'") or path.startswith('"'):
+            path = path.lstrip("'")
+            path = path.lstrip('"')
+        if path.endswith("'") or path.endswith('"'):
+            path = path.rstrip("'")
+            path = path.rstrip('"')
+        return path
 
-# gyr = svni_tools.getBranchYoungestRevisionList(svn_path)
-# for y in gyr:
-#     print y
+    def getLogInformation(self):
+        svn_path = self.validateSVNPath()
+        start_time = time.time()
+        svni_tools.getLogInfo(svn_path)
+        time_taken = time.time() - start_time
+        print "Time taken in seconds:", time_taken
 
-
-# print ""
-
-#tag_dir_list =  svni_tools.listPathStartRevEndRev(svn_path)
-#for z in tag_dir_list:
-#    print z
-
-
-svni_tools.getLogInfo(svn_path)
-#print svni_tools.getLogInfo(svn_path, list_log_path2)
-time_taken = time.time() - start_time
-print "Time taken in (s):", time_taken
+svn_client = svn_client()
+#try:
+svn_client.getLogInformation()
+#except Exception:
+#print "Oops, could not generate the report. Try again"
 #svni_tools.wait()
 
 
